@@ -3,6 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model.logistic import LogisticRegression
+from sklearn.svm import SVC
 
 
 def get_data_from_csv(file_name, sep=',', encoding='utf-8', **kwargs):
@@ -35,10 +36,12 @@ def get_data_from_csv(file_name, sep=',', encoding='utf-8', **kwargs):
 
 def train():
     input = get_input()
-    lr = LogisticRegression()
-    lr.fit(input[0], input[1])
-    lr_predict = lr.predict(input[2])
-    acc_log = round(lr.score(input[0], input[1]) * 100, 2)
+    # lr = LogisticRegression()
+    svc = SVC()
+    # lr.fit(input[0], input[1])
+    svc_predict = svc.fit(input[0], input[1])
+    # lr_predict = lr.predict(input[2])
+    acc_log = round(svc.score(input[0], input[1]) * 100, 2)
     print(acc_log)
 
 
@@ -51,8 +54,8 @@ def get_input():
 
 
 def analysize_data():
-    train_df = get_data_from_csv('/Users/hanzhao/Downloads/train.csv')
-    test_df = get_data_from_csv('/Users/hanzhao/Downloads/test.csv')
+    train_df = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/train.csv')
+    test_df = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/test.csv')
     after_select = select_feature(train_df, test_df)
     title_extract = extract_Title_feature(after_select[0], after_select[1], after_select[2])
     sex_convert = convert_sex_features(title_extract[0], title_extract[1], title_extract[2])
