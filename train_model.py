@@ -15,24 +15,24 @@ def get_data_from_csv(file_name, sep=',', encoding='utf-8', **kwargs):
     return data
 
 
-# def explore_data():
-#     train_df = get_data_from_csv('/Users/hanzhao/Downloads/train.csv')
-#     test_df = get_data_from_csv('/Users/hanzhao/Downloads/test.csv')
-#     combine = [train_df, test_df]
-#     # print(train_df.columns.values)
-#     # print(train_df.info())
-#     # print(train_df.describe())
-#     # g = sns.FacetGrid(train_df, col='Survived')
-#     # g.map(plt.hist, 'Age', bins=20)
-#     # plt.show()
-#     # grid = sns.FacetGrid(train_df, col='Pclass', hue='Survived')
-#     # grid = sns.FacetGrid(train_df, col='Survived', row='Pclass', size=2.2, aspect=1.6)
-#     # grid.map(plt.hist, 'Age', alpha=.5, bins=20)
-#     # grid.add_legend();
-#     # plt.show()
-#     # g = sns.FacetGrid(train_df, col='Survived',row='Sex',size=2.2)
-#     # g.map(plt.hist, 'Age', bins=20)
-#     # plt.show()
+def explore_data():
+    train_df = get_data_from_csv('/Users/hanzhao/Downloads/train.csv')
+    test_df = get_data_from_csv('/Users/hanzhao/Downloads/test.csv')
+    combine = [train_df, test_df]
+    # print(train_df.columns.values)
+    # print(train_df.info())
+    # print(train_df.describe())
+    # g = sns.FacetGrid(train_df, col='Survived')
+    # g.map(plt.hist, 'Age', bins=20)
+    # plt.show()
+    # grid = sns.FacetGrid(train_df, col='Pclass', hue='Survived')
+    # grid = sns.FacetGrid(train_df, col='Survived', row='Pclass', size=2.2, aspect=1.6)
+    # grid.map(plt.hist, 'Age', alpha=.5, bins=20)
+    # grid.add_legend();
+    # plt.show()
+    # g = sns.FacetGrid(train_df, col='Survived',row='Sex',size=2.2)
+    # g.map(plt.hist, 'Age', bins=20)
+    # plt.show()
 
 def train():
     input = get_input()
