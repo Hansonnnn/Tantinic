@@ -34,6 +34,18 @@ def explore_data():
     # g.map(plt.hist, 'Age', bins=20)
     # plt.show()
 
+
+def missing_data():
+    train_data = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/train.csv')
+    test_data = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/test.csv')
+    train_per = (train_data.isnull().sum() / train_data.isnull().count()).sort_values(ascending=True)
+    test_per = (test_data.isnull().sum() / test_data.isnull().count()).sort_values(ascending=True)
+    train_per_top = train_per[train_per > 0]
+    test_per_top = test_per[train_per > 0]
+    print(train_per_top)
+    print(test_per_top)
+
+
 def train():
     input = get_input()
     # lr = LogisticRegression()
@@ -69,7 +81,11 @@ def analysize_data():
     return after_create
 
 
-"""@description  step 1:"""
+"""@description  step 1:
+    Cabin Featueres has more than 75% of missing 
+    data in both Test and train data so we are remove 
+    the Cabin.
+"""
 
 
 def select_feature(train_df, test_df):
@@ -182,4 +198,4 @@ def create_features(combine, train_df, test_df):
 
 
 if __name__ == '__main__':
-    train()
+    missing_data()
