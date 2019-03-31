@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model.logistic import LogisticRegression
 from sklearn.svm import SVC
+from sklearn import metrics
 
 
 def get_data_from_csv(file_name, sep=',', encoding='utf-8', **kwargs):
@@ -48,12 +49,15 @@ def missing_data():
 
 def train():
     input = get_input()
-    # lr = LogisticRegression()
+    lr = LogisticRegression(penalty='l1', C=0.9, max_iter=1000)
     svc = SVC()
-    # lr.fit(input[0], input[1])
-    svc_predict = svc.fit(input[0], input[1])
-    # lr_predict = lr.predict(input[2])
-    acc_log = round(svc.score(input[0], input[1]) * 100, 2)
+    lr.fit(input[0], input[1])
+    # svc_predict = svc.fit(input[0], input[1])
+    lr_predict = lr.predict(input[2])
+
+    fpr, tpr, thresholds = metrics.roc_curve(input[1][:len(input[2])], lr_predict, pos_label=1)
+    print(metrics.auc(fpr, tpr))
+    acc_log = round(lr.score(input[0], input[1]) * 100, 2)
     print(acc_log)
 
 
@@ -62,6 +66,11 @@ def get_input():
     x_train = after_analysize[1].drop('Survived', axis=1)
     y_train = after_analysize[1]['Survived']
     x_test = after_analysize[2].copy()
+    from sklearn.preprocessing import OneHotEncoder
+    ohe = OneHotEncoder(categorical_features=[0])
+
+    x_train = ohe.fit_transform(x_train).toarray()
+    x_test = ohe.fit_transform(x_test).toarray()
     return x_train, y_train, x_test
 
 
@@ -198,4 +207,4 @@ def create_features(combine, train_df, test_df):
 
 
 if __name__ == '__main__':
-    missing_data()
+    train()
