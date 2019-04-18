@@ -3,8 +3,14 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model.logistic import LogisticRegression
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVC
 from sklearn import metrics
+from xgboost import XGBClassifier
+import warnings
+
+warnings.filterwarnings("ignore")
 
 
 def get_data_from_csv(file_name, sep=',', encoding='utf-8', **kwargs):
@@ -51,14 +57,63 @@ def train():
     input = get_input()
     lr = LogisticRegression(penalty='l1', C=0.9, max_iter=1000)
     svc = SVC()
-    lr.fit(input[0], input[1])
+    # lr.fit(input[0], input[1])
     # svc_predict = svc.fit(input[0], input[1])
-    lr_predict = lr.predict(input[2])
+    # lr_predict = lr.predict(input[2])
+    hyperparam = {
+        'learning_rate': (np.exp(0.05 * np.arange(1, 7)) - 1).round(2),
+        'max_depth': np.arange(3, 29, 4),
+        'n_estimators': [100, 150, 200],
+        'objective': ['binary:logistic'],
+        'booster': ['gbtree', 'dart'],
+        'gamma': np.arange(0, .2, .02),
+        'min_child_weight': np.arange(0.8, 1.5, .1),
+        'max_delta_step': [.01, .02],
+        'subsample': np.arange(.5, .91, .1),
+        'colsample_bytree': np.arange(.5, .91, .1),
+        'reg_alpha': np.arange(0, 1.11, .1),
+        'reg_lambda': np.arange(0, 1.11, .1)
+    }
+    print('generating xgboost ...')
 
-    fpr, tpr, thresholds = metrics.roc_curve(input[1][:len(input[2])], lr_predict, pos_label=1)
-    print(metrics.auc(fpr, tpr))
-    acc_log = round(lr.score(input[0], input[1]) * 100, 2)
-    print(acc_log)
+    xgboost_estimator = XGBClassifier(
+        learning_rate=0.11,  # eta learning rate (0.3)
+        max_depth=5,  # max num of levels (9)
+        n_estimators=30,  # number of trees
+        objective='binary:logistic',  # type of target func
+        booster='gbtree',  # type of model
+        gamma=0.1,  # minimum loss reduction on a leaf (0.0)
+        min_child_weight=1.25,  # min sum of wgt per child (1.0), set >1 to underfit
+        max_delta_step=0.1,  # set >0 for more conservative weight updates
+        subsample=.5,  # pct of obs part of random subsamples (1.0)
+        colsample_bytree=.6,  # max pct of features used in sub-trees (1.0)
+        colsample_bylevel=1.0,  # not necessary if you use subsample
+        reg_alpha=0.8,  # L1 regulization param (0.0)
+        reg_lambda=0.1,  # L2 regulization param (0.1)
+        scale_pos_weight=1,  # balance positive and negative weights
+        base_score=0.5,  # start values
+        random_state=24,  # for resampling
+        n_jobs=4,
+        silent=True
+    )
+    print('xgboost estimator ...')
+    opti = GridSearchCV(
+        xgboost_estimator,
+        param_grid=hyperparam,
+        cv=25,
+        n_jobs=4,
+        return_train_score=True)
+    print('Grid search to tuning hyper-parameter ...')
+    opti.fit(input[0], y=input[1])
+    # fpr, tpr, thresholds = metrics.roc_curve(input[1][:len(input[2])], predict, pos_label=1)
+    # print(metrics.auc(fpr, tpr))
+    # acc_log = round(lr.score(input[0], input[1]) * 100, 2)
+    print('fit ended ...')
+    bestmodel = opti.best_estimator_
+    bestmodel.fit(input[0], y=input[1])
+    print('best model fit ...')
+    print(accuracy_score(input[1], bestmodel.predict(input[0])))
+    # print(acc_log)
 
 
 def get_input():
@@ -66,15 +121,17 @@ def get_input():
     x_train = after_analysize[1].drop('Survived', axis=1)
     y_train = after_analysize[1]['Survived']
     x_test = after_analysize[2].copy()
-    from sklearn.preprocessing import OneHotEncoder
-    ohe = OneHotEncoder(categorical_features=[0])
-
-    x_train = ohe.fit_transform(x_train).toarray()
-    x_test = ohe.fit_transform(x_test).toarray()
+    print('explored data ... return')
+    # from sklearn.preprocessing import OneHotEncoder
+    # ohe = OneHotEncoder(categorical_features=[0])
+    #
+    # x_train = ohe.fit_transform(x_train).toarray()
+    # x_test = ohe.fit_transform(x_test).toarray()
     return x_train, y_train, x_test
 
 
 def analysize_data():
+    print('exploring data ...')
     train_df = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/train.csv')
     test_df = get_data_from_csv('/Users/hanzhao/PycharmProjects/Titanic/dataset/test.csv')
     after_select = select_feature(train_df, test_df)
@@ -136,17 +193,17 @@ def convert_sex_features(combine, train_df, test_df):
 
 def convert_age_features(combine, train_df, test_df):
     for dataset in combine:
-        dataset.loc[dataset['Age'] <= 16, 'Age'] = 0
-        dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 1
-        dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 2
-        dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 3
-        dataset.loc[dataset['Age'] > 64, 'Age'] = 4
+        dataset.loc[dataset['Age'] <= 16, 'Age'] = 1
+        dataset.loc[(dataset['Age'] > 16) & (dataset['Age'] <= 32), 'Age'] = 2
+        dataset.loc[(dataset['Age'] > 32) & (dataset['Age'] <= 48), 'Age'] = 3
+        dataset.loc[(dataset['Age'] > 48) & (dataset['Age'] <= 64), 'Age'] = 4
+        dataset.loc[dataset['Age'] > 64, 'Age'] = 5
     return combine, train_df, test_df
 
 
 def convert_embarked_feature(combine, train_df, test_df):
     for dataset in combine:
-        dataset['Embarked'] = dataset['Embarked'].map({'S': 0, 'C': 1, 'Q': 2}).astype(int)
+        dataset['Embarked'] = dataset['Embarked'].map({'S': 1, 'C': 2, 'Q': 3}).astype(int)
     return combine, train_df, test_df
 
 
